@@ -22,6 +22,12 @@ flush()
 search_json()
     Search and return JSON objects
 
+stop_words
+    Words to remove from index/search data
+
+clean_phrase()
+    Overload this to customize what gets filtered out of search terms
+
 Cookbook
 ========
 
@@ -32,3 +38,9 @@ Use mappers to return NetDevice objects::
     engine = RedisEngine(prefix='netdevices', db=1)
     results = engine.search_json('core1', mappers=[NetDevice])
     print results[0] # => 'core1-asg.ops.sfdc.net'
+
+Use filters to filter the results::
+
+    def filter_dev(field, value):
+        return lambda obj: getattr(obj, field, None) == value
+    engine.search_json('core1', mappers=[NetDevice], filters=[filter_dev(vendor='force10'))

@@ -17,9 +17,11 @@ def get_data(path=NETDEVICES):
     with open(path) as f:
         return json.load(f)
 
-def get_engine(prefix=KEY_PREFIX, db=REDIS_DB):
+def get_engine(prefix=KEY_PREFIX, db=REDIS_DB, engine_class=None):
     """Return RedisEngine completion object"""
-    engine = redis_completion.RedisEngine(prefix='netdevices', db=1)
+    if engine_class is None:
+        engine_class = redis_completion.RedisEngine
+    engine = engine_class(prefix='netdevices', db=1)
     return engine
 
 def populate_netdevices(netdevices, engine):
@@ -33,6 +35,17 @@ def populate_netdevices(netdevices, engine):
 
     # True if all store_json() calls returned None
     return set(results) == {None}
+
+def filter_dev(**kwargs):
+    field, value = kwargs.items()[0]
+    return lambda obj: getattr(obj, field, None) == value
+
+class MyRedisEngine(redis_completion.RedisEngine):
+    def clean_phrase(self, phrase):
+        print 'before:', phrase
+        cleaned = super(MyRedisEngine, self).clean_phrase(phrase)
+        print ' after:', cleaned
+        return cleaned
 
 class RedisLoader(BaseLoader):
     """Load NetDevices from Redis using redis-completion."""
