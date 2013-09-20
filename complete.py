@@ -60,3 +60,11 @@ class RedisLoader(BaseLoader):
             return self.get_data(data_source, key_prefix)
         except Exception as err:
             raise LoaderFailed("Tried %r; and failed: %r" % (data_source, err))
+
+if __name__ == '__main__':
+    engine = get_engine()
+    netdevices = get_data()
+    from trigger.netdevices import NetDevice
+    mappers = [NetDevice]
+    print engine.search_json('core1', mappers=mappers)
+
