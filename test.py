@@ -33,7 +33,8 @@ class RedisNetDevices(NetDevices._actual, collections.MutableMapping):
         if not self._values:
             self._values = self.engine._process_ids(self.id_list, limit=None,
                     filters=None, mappers=[json.loads, NetDevice])
-        return list(iter(self))
+        #return list(iter(self))
+        return self._values
 
     @property
     def _mappers(self):
@@ -55,18 +56,26 @@ class RedisNetDevices(NetDevices._actual, collections.MutableMapping):
     search = _search
 
     def __getitem__(self, item):
+        #result = self._search(item)
+        #if len(result) == 1:
+        #    return self._search(item, limit=1)[0]
         try:
             #result = self._search(item, limit=1)[0]
             result = self._search(item)
             if len(result) == 1:
                 return self._search(item, limit=1)[0]
-            raise IndexError
-        except IndexError as err:
-            raise KeyError(item)
+#            raise IndexError
+#        except IndexError as err:
+#            raise KeyError(item)
+            raise KeyError
+        except (IndexError, KeyError) as err:
+            print err
+            raise err.__class__(item)
 
     def __contains__(self, item):
         try:
             test = self[item]
+#        except (IndexError, KeyError):
         except KeyError:
             return False
         else:
@@ -78,12 +87,7 @@ class RedisNetDevices(NetDevices._actual, collections.MutableMapping):
         return self.client.hlen(self.engine.data_key)
 
     def __iter__(self):
-        if not self._values:
-            values = self.engine._process_ids(self.id_list, limit=None,
-                                              filters=None,
-                                              mappers=[json.loads, NetDevice])
-            self._values = values
-        return iter(self._values)
+        return iter(self.values())
 
     def __delitem__(self):
         pass

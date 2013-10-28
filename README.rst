@@ -4,6 +4,8 @@ Redis Completion Notes
 
 Using redis-completion w/ Trigger NetDevices
 
+**This depends on the redis_completion branch of Trigger @ github.com/jathanism/trigger**
+
 URL
     http://redis-completion.readthedocs.org
 
