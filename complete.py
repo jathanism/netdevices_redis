@@ -1,4 +1,9 @@
-# pop.py - Test redis_completion w/ Trigger NetDevices
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+complete.py - Test redis_completion w/ Trigger NetDevices
+"""
 
 from collections import deque
 import json

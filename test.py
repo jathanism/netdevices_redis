@@ -41,9 +41,21 @@ class RedisNetDevices(NetDevices._actual, collections.MutableMapping):
         # Return a copy of self.__mappers
         return self.__mappers[:]
 
-    def _search(self, *args, **kwargs):
+    def _search(self, phrase, **kwargs):
+        """
+        Search for NetDevices by nodeName prefix with optional field=value
+        CaSe-SeNSiTiVe kwargs.
+
+        >>> nd.search('edge', site='CHI')
+        [<NetDevice: edge1-abc.ops.example.net>,
+         <NetDevice: edge2-chi.ops.example.net>]
+        """
         mymappers = self._mappers
-        return self.engine.search_json(mappers=mymappers, *args, **kwargs)
+        filters = []
+        for key, val in kwargs.iteritems():
+            filters.append(self.filter_dev(key, val))
+        return self.engine.search_json(phrase, mappers=mymappers,
+                                       filters=filters)
 
     def filter_dev(self, field, value):
         return lambda obj: getattr(obj, field, None) == value
@@ -56,17 +68,10 @@ class RedisNetDevices(NetDevices._actual, collections.MutableMapping):
     search = _search
 
     def __getitem__(self, item):
-        #result = self._search(item)
-        #if len(result) == 1:
-        #    return self._search(item, limit=1)[0]
         try:
-            #result = self._search(item, limit=1)[0]
             result = self._search(item)
             if len(result) == 1:
-                return self._search(item, limit=1)[0]
-#            raise IndexError
-#        except IndexError as err:
-#            raise KeyError(item)
+                return result[0]
             raise KeyError
         except (IndexError, KeyError) as err:
             print err
@@ -75,13 +80,10 @@ class RedisNetDevices(NetDevices._actual, collections.MutableMapping):
     def __contains__(self, item):
         try:
             test = self[item]
-#        except (IndexError, KeyError):
         except KeyError:
             return False
         else:
             return True
-        #test = self.engine.search(item, limit=1) # Don't need JSON; faster
-        #return len(test) > 0
 
     def __len__(self):
         return self.client.hlen(self.engine.data_key)
